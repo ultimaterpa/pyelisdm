@@ -11,7 +11,7 @@ class Elis:
         self.username = username
         self.password = password
         self.max_token_lifetime_s = max_token_lifetime_s
-        self._session = APISession(base_url=base_url)
+        self._session = URLBaseSession(base_url=base_url)
 
     def __enter__(self):
         self.login()
@@ -39,7 +39,7 @@ class Elis:
         return response.json()
 
     def queue(self, queue_id):
-        response = self._session.get(f"/queues/{queue_id}")
+        response = self._session.get(f"v1/queues/{queue_id}")
         response.raise_for_status()
         return Queue(response.json())
 
@@ -60,7 +60,7 @@ class Schema:
     pass
 
 
-class APISession(requests.Session):
+class URLBaseSession(requests.Session):
     def __init__(self, base_url):
         self.base_url = base_url
         super().__init__()
