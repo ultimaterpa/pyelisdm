@@ -14,13 +14,13 @@ class Elis:
         self._session = URLBaseSession(base_url=base_url)
 
     def __enter__(self):
-        self.login()
+        self._login()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.logout()
+        self._logout()
 
-    def login(self):
+    def _login(self):
         response = self._session.post(
             "v1/auth/login",
             headers=CONTENT_TYPE,
@@ -29,7 +29,7 @@ class Elis:
         response.raise_for_status()
         self._session.headers.update({"Authorization": f"token {response.json()['key']}"})
 
-    def logout(self):
+    def _logout(self):
         response = self._session.post("v1/auth/logout")
         response.raise_for_status()
 
