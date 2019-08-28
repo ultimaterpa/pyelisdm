@@ -5,10 +5,12 @@ CONTENT_TYPE = {"Content-Type": "application/json"}
 
 
 class Elis:
-    def __init__(self, username, password, max_token_lifetime_s=None):
+    def __init__(self, username, password, url=URL, max_token_lifetime_s=None):
         self.username = username
         self.password = password
+        self.url = url
         self.max_token_lifetime_s = max_token_lifetime_s
+        self._session = requests.Session()
         self._authorization = None
 
     def __enter__(self):
@@ -20,27 +22,25 @@ class Elis:
             self.logout()
 
     def login(self):
-        response = requests.post(
+        response = self._session.post(
             f"{URL}/auth/login",
             headers=CONTENT_TYPE,
             json={"username": self.username, "password": self.password},
         )
         response.raise_for_status()
-        self._authorization = {"Authorization": f"token {response.json()['key']}"}
+        self._session.headers.update({"Authorization": f"token {response.json()['key']}"})
 
     def logout(self):
-        response = requests.post(f"{URL}/auth/logout", headers=self._authorization)
+        response = self._session.post(f"{URL}/auth/logout")
         response.raise_for_status()
 
     def queues(self, ordering=None):
-        response = requests.get(
-            f"{URL}/queues", params={"ordering": ordering}, headers=self._authorization
-        )
+        response = self._session.get(f"{URL}/queues", params={"ordering": ordering})
         response.raise_for_status()
         return response.json()
 
     def queue(self, queue_id):
-        response = requests.get(f"{URL}/queues/{queue_id}", headers=self._authorization)
+        response = self._session.get(f"{URL}/queues/{queue_id}")
         response.raise_for_status()
         return Queue(response.json())
 
