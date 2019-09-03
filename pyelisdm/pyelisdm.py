@@ -53,11 +53,16 @@ class Queue:
     def upload(self, invoice, values=None):
         files = {"content": open(invoice, "rb")}
         response = self.session.post(f"v1/queues/{self.id}/upload", files=files, data=values)
-        print(response.text)
         response.raise_for_status()
 
-    def export(self):
-        pass
+    def export(self, format="json", filter=None):
+        params = {"format": format}
+        if filter is not None:
+            params.update(filter)
+        response = self.session.get(f"v1/queues/{self.id}/export", params=params)
+        response.raise_for_status()
+        return response.json()
+        
 
 
 class Schema:
