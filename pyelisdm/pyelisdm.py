@@ -80,13 +80,15 @@ class Annotation:
         self.json = response.json()
         self.status = self.json["status"]
 
-    def confirm(self):
-        response = self.session.post(f"v1/annotatons/{self.annotation_id}/confirm")
+    def start(self):
+        response = self.session.get(f"v1/annotations/{self.annotation_id}/start")
         response.raise_for_status()
+        return response.json()
 
-
-class Schema:
-    pass
+    def confirm(self):
+        response = self.session.post(f"v1/annotations/{self.annotation_id}/confirm")
+        response.raise_for_status()
+        self.refresh()
 
 
 class URLBaseSession(requests.Session):
