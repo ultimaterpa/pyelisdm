@@ -39,30 +39,50 @@ class Elis:
         return response.json()
 
     def queue(self, queue_id):
-        response = self.session.get(f"v1/queues/{queue_id}")
-        response.raise_for_status()
-        return Queue(self.session, response.json())
+        return Queue(self.session, queue_id)
 
 
 class Queue:
-    def __init__(self, session, response):
+    def __init__(self, session, queue_id):
         self.session = session
-        self.id = response["id"]
-        self.url = response["url"]
+        self.queue_id = queue_id
+        self.refresh()
+
+    def refresh(self):
+        response = self.session.get(f"v1/queues/{self.queue_id}")
+        response.raise_for_status()
+        self.json = response.json()
 
     def upload(self, invoice, values=None):
         files = {"content": open(invoice, "rb")}
-        response = self.session.post(f"v1/queues/{self.id}/upload", files=files, data=values)
+        response = self.session.post(f"v1/queues/{self.queue_id}/upload", files=files, data=values)
         response.raise_for_status()
+        return Annotation(self.session, response.json()["annotation"].split("/")[-1])
 
     def export(self, format="json", filter=None):
         params = {"format": format}
         if filter is not None:
             params.update(filter)
-        response = self.session.get(f"v1/queues/{self.id}/export", params=params)
+        response = self.session.get(f"v1/queues/{self.queue_id}/export", params=params)
         response.raise_for_status()
         return response.json()
-        
+
+
+class Annotation:
+    def __init__(self, session, annotation_id):
+        self.session = session
+        self.annotation_id = annotation_id
+        self.refresh()
+
+    def refresh(self):
+        response = self.session.get(f"v1/annotations/{self.annotation_id}")
+        response.raise_for_status()
+        self.json = response.json()
+        self.status = self.json["status"]
+
+    def confirm(self):
+        response = self.session.post(f"v1/annotatons/{self.annotation_id}/confirm")
+        response.raise_for_status()
 
 
 class Schema:
