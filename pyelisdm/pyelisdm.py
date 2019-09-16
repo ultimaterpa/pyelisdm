@@ -67,6 +67,42 @@ class Queue:
         response.raise_for_status()
         return response.json()
 
+    def update(self, payload):
+        repsonse = self.session.patch(f"v1/queues/{self.queue_id}", json=payload)
+        repsonse.raise_for_status()
+        self.refresh()
+
+    @property
+    def name(self):
+        return self.json["name"]
+
+    @name.setter
+    def name(self, value: str):
+        if not isinstance(value, str):
+            raise TypeError("Value must have type str!")
+        self.update({"name": value})
+
+    @property
+    def automation_enabled(self):
+        return self.json["automation_enabled"]
+
+    @automation_enabled.setter
+    def automation_enabled(self, value: bool):
+        if not isinstance(value, bool):
+            raise TypeError("Value must have type bool!")
+        self.update({"automation_enabled": value})
+
+    @property
+    def automation_level(self):
+        return self.json["automation_level"]
+
+    @automation_level.setter
+    def automation_level(self, value):
+        automation_levels = ("always", "confident", "never")
+        if value not in automation_levels:
+            raise ValueError(f"The value must be from: {automation_levels}!")
+        self.update({"automation_level": value})
+
 
 class Annotation:
     def __init__(self, session, annotation_id):
