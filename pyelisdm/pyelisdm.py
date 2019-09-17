@@ -1,5 +1,7 @@
-import requests
 from urllib.parse import urljoin
+from typing import Union
+
+import requests
 
 
 URL = "https://api.elis.rossum.ai"
@@ -100,8 +102,20 @@ class Queue:
     def automation_level(self, value):
         automation_levels = ("always", "confident", "never")
         if value not in automation_levels:
-            raise ValueError(f"The value must be from: {automation_levels}!")
+            raise ValueError(f"Value must be from: {automation_levels}!")
         self.update({"automation_level": value})
+
+    @property
+    def default_score_threshold(self):
+        return self.json["default_score_threshold"]
+    
+    @default_score_threshold.setter
+    def default_score_threshold(self, value: Union[float, int]):
+        if not isinstance(value, (float, int)):
+            raise TypeError("Value must have type float or int!")
+        if 0 >= value <= 1:
+            raise ValueError("Value must be number from interval [0,1]!")
+        self.update({"default_score_threshold": value})
 
 
 class Annotation:
@@ -125,6 +139,11 @@ class Annotation:
         response = self.session.post(f"v1/annotations/{self.annotation_id}/confirm")
         response.raise_for_status()
         self.refresh()
+
+    def content(self):
+        response = self.session.get(f"v1/annotations/{self.annotation_id}/content")
+        response.raise_for_status()
+        return response.json()
 
 
 class URLBaseSession(requests.Session):
